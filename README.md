@@ -11,9 +11,9 @@ A production-style full-stack analytics platform for school administrators. This
 
 ## Live Preview
 
-**Experience the application live:** [Coming Soon]
-
-![Live Demo](https://img.shields.io/badge/Live%20Demo-Coming%20Soon-yellow?style=for-the-badge&logo=vercel&logoColor=white)
+- Live App: `https://savra-ai-dashboard.vercel.app`
+- Live API: `https://savra-server.vercel.app/api/v1`
+- Live API Health: `https://savra-server.vercel.app/api/v1/health`
 
 ## Core Features
 
@@ -65,8 +65,8 @@ A production-style full-stack analytics platform for school administrators. This
 #### Step 1: Clone Repository
 
 ```bash
-git clone <your-repository-url>
-cd savraAi-admin
+git clone https://github.com/aaditya09750/savraAi-Dashboard.git
+cd savraAi-Dashboard
 ```
 
 #### Step 2: Install Backend Dependencies
@@ -138,9 +138,11 @@ npm run dev
 
 ### Access URLs
 
-- Frontend: `http://localhost:5173`
-- Backend API: `http://localhost:5000/api/v1`
-- Health check: `http://localhost:5000/api/v1/health`
+- Frontend (Local): `http://localhost:5173`
+- Backend API (Local): `http://localhost:5000/api/v1`
+- Health check (Local): `http://localhost:5000/api/v1/health`
+- Frontend (Live): `https://savra-ai-dashboard.vercel.app`
+- Backend API (Live): `https://savra-server.vercel.app/api/v1`
 
 ### Default Admin Credentials
 
@@ -326,9 +328,9 @@ savraAi-admin/
 
 For assignment review and discussion:
 - Email: `aadigunjal0975@gmail.com`
+- Repository: `https://github.com/aaditya09750/savraAi-Dashboard`
 - GitHub: `https://github.com/aaditya09750`
 
 ---
 
 **SAVRA - Teacher Insights Dashboard** is designed as a production-minded analytics system focused on clean architecture, secure APIs, scalable data modeling, and actionable insights for academic administrators.
-

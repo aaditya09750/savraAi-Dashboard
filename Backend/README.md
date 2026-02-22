@@ -2,6 +2,10 @@
 
 Production-ready Express + MongoDB backend for the existing SAVRA admin frontend.
 
+## Repository
+
+- `https://github.com/aaditya09750/savraAi-Dashboard`
+
 ## Tech Stack
 
 - Node.js + Express.js
@@ -70,8 +74,10 @@ npm run dev
 
 ## Base URL
 
-- `http://localhost:5000`
-- API prefix: `/api/v1`
+- Local: `http://localhost:5000`
+- Local API prefix: `/api/v1`
+- Live API: `https://savra-server.vercel.app/api/v1`
+- Live Dashboard: `https://savra-ai-dashboard.vercel.app`
 
 ## API Endpoints
 
