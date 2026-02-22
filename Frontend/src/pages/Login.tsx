@@ -4,29 +4,31 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Icons } from '../components/ui/Icon';
 import { APP_CONFIG } from '../config/constants';
+import { useAuth } from '../context/AuthContext';
+import { extractErrorMessage } from '../services/apiClient';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    // Simulate network delay for a smoother UX feel
-    setTimeout(() => {
-      if (username === 'Admin' && password === 'Savra@321') {
-        navigate('/');
-      } else {
-        setError('Invalid username or password');
-        setIsLoading(false);
-      }
-    }, 800);
+    try {
+      await login(username, password);
+      navigate('/', { replace: true });
+    } catch (loginError) {
+      setError(extractErrorMessage(loginError));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Icons } from '../ui/Icon';
 import { clsx } from 'clsx';
 import { NAVIGATION_ITEMS, APP_CONFIG } from '../../config/constants';
+import { useAuth } from '../../context/AuthContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -12,10 +13,11 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout, user } = useAuth();
 
   const handleLogout = () => {
-    // In a real app, you would clear auth tokens here
-    navigate('/login');
+    logout();
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -86,8 +88,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               {APP_CONFIG.USER_INITIALS}
             </div>
             <div className="overflow-hidden">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide truncate">{APP_CONFIG.USER_ROLE}</p>
-              <p className="text-sm font-semibold text-gray-800 truncate">{APP_CONFIG.USER_NAME}</p>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide truncate">{user?.role ?? APP_CONFIG.USER_ROLE}</p>
+              <p className="text-sm font-semibold text-gray-800 truncate">{user?.username ?? APP_CONFIG.USER_NAME}</p>
             </div>
           </div>
         </div>

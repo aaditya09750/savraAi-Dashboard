@@ -33,7 +33,7 @@ export const TeacherClassChart: React.FC<{ data: ActivityData[] }> = ({ data }) 
               contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', fontFamily: 'Poppins' }}
             />
             <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-              {data.map((entry, index) => (
+              {data.map((_, index) => (
                 <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#8B5CF6' : '#A78BFA'} />
               ))}
             </Bar>

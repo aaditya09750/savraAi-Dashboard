@@ -2,20 +2,57 @@ import React from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { Card } from '../components/ui/Card';
-import { getAllTeachers } from '../utils/analytics';
 import { Icons } from '../components/ui/Icon';
 import { clsx } from 'clsx';
+import type { TeacherDirectoryItem } from '../types';
+import { teacherApi } from '../services/teacherApi';
+import { extractErrorMessage } from '../services/apiClient';
 
 export const TeacherList: React.FC = () => {
   const { onMenuClick } = useOutletContext<{ onMenuClick: () => void }>();
   const navigate = useNavigate();
-  const teachers = getAllTeachers();
   const [search, setSearch] = React.useState('');
+  const [teachers, setTeachers] = React.useState<TeacherDirectoryItem[]>([]);
+  const [isLoading, setIsLoading] = React.useState<boolean>(true);
+  const [error, setError] = React.useState<string>('');
 
-  const filteredTeachers = teachers.filter(t => 
-    t.name.toLowerCase().includes(search.toLowerCase()) || 
-    t.subject.toLowerCase().includes(search.toLowerCase())
-  );
+  React.useEffect(() => {
+    let mounted = true;
+    const timeoutId = window.setTimeout(async () => {
+      setIsLoading(true);
+      setError('');
+
+      try {
+        const result = await teacherApi.list({
+          search,
+          page: 1,
+          limit: 100,
+        });
+
+        if (!mounted) {
+          return;
+        }
+
+        setTeachers(result);
+      } catch (fetchError) {
+        if (!mounted) {
+          return;
+        }
+
+        setError(extractErrorMessage(fetchError));
+        setTeachers([]);
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      mounted = false;
+      window.clearTimeout(timeoutId);
+    };
+  }, [search]);
 
   return (
     <div className="animate-fade-in">
@@ -26,8 +63,14 @@ export const TeacherList: React.FC = () => {
         onSearch={setSearch}
       />
 
+      {error && (
+        <div className="mb-6 px-4 py-3 rounded-lg border border-rose-100 bg-rose-50 text-sm text-rose-600">
+          {error}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredTeachers.map((teacher, index) => (
+        {teachers.map((teacher, index) => (
           <Card 
             key={teacher.id} 
             className="cursor-pointer hover:shadow-xl transition-all duration-300 group border border-transparent hover:border-purple-100 active:scale-[0.99]"
@@ -55,6 +98,11 @@ export const TeacherList: React.FC = () => {
             </div>
           </Card>
         ))}
+        {isLoading && teachers.length === 0 && (
+          <div className="col-span-full flex items-center justify-center min-h-[220px] bg-white rounded-xl border border-gray-100">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
+          </div>
+        )}
       </div>
     </div>
   );

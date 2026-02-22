@@ -1,31 +1,69 @@
-import { useMemo } from 'react';
-import { getTeacherProfile, getClassBreakdown, getTeacherRecentActivity } from '../utils/analytics';
+import { useEffect, useState } from 'react';
+import type { ActivityData, RecentActivityItem, Teacher, TimeRange } from '../types';
+import { teacherApi } from '../services/teacherApi';
+import { extractErrorMessage } from '../services/apiClient';
 
 export const useTeacherData = (
   teacherId: string, 
-  timeRange: 'week' | 'month' | 'year' = 'week',
+  timeRange: TimeRange = 'week',
   gradeFilter?: string,
   subjectFilter?: string
 ) => {
-  const teacher = useMemo(() => 
-    getTeacherProfile(teacherId, timeRange, gradeFilter, subjectFilter), 
-    [teacherId, timeRange, gradeFilter, subjectFilter]
-  );
-  
-  const classData = useMemo(() => 
-    getClassBreakdown(teacherId, timeRange, gradeFilter, subjectFilter), 
-    [teacherId, timeRange, gradeFilter, subjectFilter]
-  );
-  
-  const activities = useMemo(() => 
-    getTeacherRecentActivity(teacherId, timeRange, gradeFilter, subjectFilter), 
-    [teacherId, timeRange, gradeFilter, subjectFilter]
-  );
+  const [teacher, setTeacher] = useState<Teacher | null>(null);
+  const [classData, setClassData] = useState<ActivityData[]>([]);
+  const [activities, setActivities] = useState<RecentActivityItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string>('');
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchTeacherData = async () => {
+      setIsLoading(true);
+      setError('');
+
+      try {
+        const overview = await teacherApi.getOverview(teacherId, {
+          timeRange,
+          class: gradeFilter ?? 'All',
+          subject: subjectFilter ?? 'All',
+        });
+
+        if (!mounted) {
+          return;
+        }
+
+        setTeacher(overview.teacher);
+        setClassData(overview.classData);
+        setActivities(overview.activities);
+      } catch (fetchError) {
+        if (!mounted) {
+          return;
+        }
+
+        setError(extractErrorMessage(fetchError));
+        setTeacher(null);
+        setClassData([]);
+        setActivities([]);
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void fetchTeacherData();
+
+    return () => {
+      mounted = false;
+    };
+  }, [teacherId, timeRange, gradeFilter, subjectFilter]);
 
   return {
     teacher,
     classData,
     activities,
-    isLoading: !teacher,
+    isLoading,
+    error,
   };
 };

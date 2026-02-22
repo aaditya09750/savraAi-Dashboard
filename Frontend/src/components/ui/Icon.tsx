@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   Users, BookOpen, FileText, CheckCircle, Award, AlertTriangle, 
   Search, ChevronDown, LayoutGrid, Building2, Download, ChevronLeft,

@@ -7,8 +7,9 @@ import { RecentActivityPanel } from '../components/teacher/RecentActivityPanel';
 import { Icons } from '../components/ui/Icon';
 import { Button } from '../components/ui/Button';
 import { useTeacherData } from '../hooks/useTeacherData';
-import { generateCSV } from '../utils/analytics';
 import { clsx } from 'clsx';
+import { teacherApi } from '../services/teacherApi';
+import { extractErrorMessage } from '../services/apiClient';
 
 export const TeacherView: React.FC = () => {
   const { onMenuClick } = useOutletContext<{ onMenuClick: () => void }>();
@@ -18,33 +19,52 @@ export const TeacherView: React.FC = () => {
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('week');
   const [selectedGrade, setSelectedGrade] = useState<string>('All');
   const [selectedSubject, setSelectedSubject] = useState<string>('All');
+  const [exportError, setExportError] = useState<string>('');
+  const [isExporting, setIsExporting] = useState<boolean>(false);
   
   // Redirect if no ID provided
   if (!teacherId) return <Navigate to="/teachers" />;
   
-  const { teacher, classData, activities, isLoading } = useTeacherData(
+  const { teacher, classData, activities, isLoading, error } = useTeacherData(
     teacherId, 
     timeRange,
     selectedGrade,
     selectedSubject
   );
 
-  const handleExport = () => {
-    const csvContent = generateCSV(teacherId);
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `${teacher?.name.replace(' ', '_')}_Activity_Report.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleExport = async () => {
+    setExportError('');
+    setIsExporting(true);
+
+    try {
+      const blob = await teacherApi.downloadReport(teacherId);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${teacher?.name.replace(/\s+/g, '_') ?? teacherId}_Activity_Report.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (exportIssue) {
+      setExportError(extractErrorMessage(exportIssue));
+    } finally {
+      setIsExporting(false);
+    }
   };
 
-  if (isLoading || !teacher) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
+      </div>
+    );
+  }
+
+  if (!teacher) {
+    return (
+      <div className="px-4 py-3 rounded-lg border border-rose-100 bg-rose-50 text-sm text-rose-600">
+        {error || 'Teacher data could not be loaded.'}
       </div>
     );
   }
@@ -61,6 +81,12 @@ export const TeacherView: React.FC = () => {
         selectedSubject={selectedSubject}
         onSubjectChange={setSelectedSubject}
       />
+
+      {(error || exportError) && (
+        <div className="mb-6 px-4 py-3 rounded-lg border border-rose-100 bg-rose-50 text-sm text-rose-600">
+          {error || exportError}
+        </div>
+      )}
 
       {/* Teacher Info Lines & Time Toggle */}
       <div className="mb-8 space-y-3 bg-white/50 p-4 rounded-xl border border-gray-100 sm:bg-transparent sm:p-0 sm:border-0">
@@ -111,10 +137,11 @@ export const TeacherView: React.FC = () => {
       <div className="fixed bottom-6 right-6 z-30">
         <button 
           onClick={handleExport}
+          disabled={isExporting}
           className="flex items-center gap-2 px-6 py-3 bg-[#F97316] text-white rounded-xl font-medium shadow-floating hover:bg-orange-600 transition-all text-sm active:scale-95"
         >
             <Icons.Download size={18} />
-            <span>Export Report (CSV)</span>
+            <span>{isExporting ? 'Exporting...' : 'Export Report (CSV)'}</span>
         </button>
       </div>
     </div>

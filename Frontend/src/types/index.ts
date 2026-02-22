@@ -1,6 +1,9 @@
+import type { LucideIcon } from 'lucide-react';
+
 export type TrendDirection = 'up' | 'down' | 'neutral';
 export type MetricColor = 'purple' | 'green' | 'rose' | 'yellow' | 'orange' | 'blue';
 export type IconType = 'users' | 'book' | 'file-text' | 'check-circle' | 'award' | 'alert-triangle' | 'activity' | 'clock' | 'star';
+export type TimeRange = 'week' | 'month' | 'year';
 
 export interface Metric {
   id: string;
@@ -44,8 +47,71 @@ export interface RecentActivityItem {
   icon?: string;
 }
 
+export interface TeacherDirectoryItem {
+  id: string;
+  name: string;
+  subject: string;
+  class?: string;
+  grade: string;
+}
+
+export interface DashboardOverview {
+  metrics: Metric[];
+  weeklyData: ActivityData[];
+  pulseData: PulseItem[];
+  aiSummary?: string;
+}
+
+export interface TeacherOverview {
+  teacher: Teacher;
+  classData: ActivityData[];
+  activities: RecentActivityItem[];
+}
+
+export interface FilterOptions {
+  classes?: string[];
+  grades: string[];
+  subjects: string[];
+}
+
+export interface AuthUser {
+  id: string;
+  username: string;
+  role: string;
+  lastLoginAt?: string | null;
+}
+
+export interface LoginPayload {
+  token: string;
+  user: AuthUser;
+}
+
+export interface ApiSuccessResponse<T> {
+  success: true;
+  message: string;
+  data: T;
+  requestId: string;
+  meta?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface ApiErrorResponse {
+  success: false;
+  message: string;
+  requestId?: string;
+  errors?: Array<{
+    segment?: string;
+    field?: string;
+    message: string;
+  }>;
+}
+
 export interface NavItem {
   label: string;
   path: string;
-  icon: any; // Lucide icon component type
+  icon: LucideIcon;
 }

@@ -1,22 +1,26 @@
 import React from 'react';
 import { Card } from '../ui/Card';
-import { PulseItem } from '../../types';
+import { MetricColor, PulseItem } from '../../types';
 import { clsx } from 'clsx';
 import { Icons } from '../ui/Icon';
 
-const colorMap = {
+const colorMap: Record<MetricColor, string> = {
   purple: 'bg-[#F3E8FF]',
   green: 'bg-[#DCFCE7]',
   yellow: 'bg-[#FEF9C3]',
   rose: 'bg-[#FFE4E6]',
+  orange: 'bg-[#FFEDD5]',
+  blue: 'bg-[#DBEAFE]',
 };
 
-export const PulseSummary: React.FC<{ items: PulseItem[] }> = ({ items }) => {
+export const PulseSummary: React.FC<{ items: PulseItem[]; summary?: string }> = ({ items, summary }) => {
   return (
     <Card className="h-full p-6 shadow-sm border border-gray-100 rounded-2xl">
       <div className="mb-6">
         <h3 className="text-base font-bold text-gray-900">AI Pulse Summary</h3>
-        <p className="text-xs text-gray-500 mt-1">Real time insights from your data</p>
+        <p className="text-xs text-gray-500 mt-1">
+          {summary && summary.trim().length > 0 ? summary : 'Real time insights from your data'}
+        </p>
       </div>
 
       <div className="space-y-3">

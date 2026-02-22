@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Icons } from '../ui/Icon';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/Button';
-import { getAvailableGrades, getAvailableSubjects } from '../../utils/analytics';
+import { metadataApi } from '../../services/metadataApi';
 
 interface HeaderProps {
   title?: string;
@@ -32,12 +32,13 @@ export const Header: React.FC<HeaderProps> = ({
   const navigate = useNavigate();
   const [showGradeMenu, setShowGradeMenu] = useState(false);
   const [showSubjectMenu, setShowSubjectMenu] = useState(false);
+  const [grades, setGrades] = useState<string[]>([]);
+  const [subjects, setSubjects] = useState<string[]>([]);
   
   const gradeRef = useRef<HTMLDivElement>(null);
   const subjectRef = useRef<HTMLDivElement>(null);
-
-  const grades = ['All', ...getAvailableGrades()];
-  const subjects = ['All', ...getAvailableSubjects()];
+  const gradeOptions = ['All', ...grades];
+  const subjectOptions = ['All', ...subjects];
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -52,6 +53,40 @@ export const Header: React.FC<HeaderProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!onGradeChange || !onSubjectChange) {
+      return;
+    }
+
+    let mounted = true;
+
+    const fetchFilters = async () => {
+      try {
+        const options = await metadataApi.getFilters();
+
+        if (!mounted) {
+          return;
+        }
+
+        setGrades(options.classes ?? options.grades ?? []);
+        setSubjects(options.subjects);
+      } catch {
+        if (!mounted) {
+          return;
+        }
+
+        setGrades([]);
+        setSubjects([]);
+      }
+    };
+
+    void fetchFilters();
+
+    return () => {
+      mounted = false;
+    };
+  }, [onGradeChange, onSubjectChange]);
 
   return (
     <header className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 mb-8 relative z-20">
@@ -109,7 +144,7 @@ export const Header: React.FC<HeaderProps> = ({
               
               {showGradeMenu && (
                 <div className="absolute top-full right-0 mt-2 w-40 bg-white rounded-xl shadow-floating border border-gray-100 py-2 z-50 animate-fade-in">
-                  {grades.map(grade => (
+                  {gradeOptions.map(grade => (
                     <button
                       key={grade}
                       onClick={() => {
@@ -138,7 +173,7 @@ export const Header: React.FC<HeaderProps> = ({
 
               {showSubjectMenu && (
                 <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-floating border border-gray-100 py-2 z-50 animate-fade-in">
-                  {subjects.map(subject => (
+                  {subjectOptions.map(subject => (
                     <button
                       key={subject}
                       onClick={() => {

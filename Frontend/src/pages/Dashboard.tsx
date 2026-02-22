@@ -17,7 +17,12 @@ export const Dashboard: React.FC = () => {
   const [selectedSubject, setSelectedSubject] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const { metrics, weeklyData, pulseData } = useDashboardData(timeRange, selectedGrade, selectedSubject, searchQuery);
+  const { metrics, weeklyData, pulseData, aiSummary, isLoading, error } = useDashboardData(
+    timeRange,
+    selectedGrade,
+    selectedSubject,
+    searchQuery
+  );
 
   return (
     <div className="animate-fade-in">
@@ -53,11 +58,22 @@ export const Dashboard: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {metrics.map(metric => (
+          {metrics.map((metric) => (
             <MetricCard key={metric.id} metric={metric} />
           ))}
+          {isLoading && metrics.length === 0 && (
+            <div className="col-span-full flex items-center justify-center min-h-[140px] bg-white rounded-xl border border-gray-100">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
+            </div>
+          )}
         </div>
       </section>
+
+      {error && (
+        <div className="mb-6 px-4 py-3 rounded-lg border border-rose-100 bg-rose-50 text-sm text-rose-600">
+          {error}
+        </div>
+      )}
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -65,7 +81,7 @@ export const Dashboard: React.FC = () => {
           <WeeklyActivityChart data={weeklyData} />
         </div>
         <div className="xl:col-span-1">
-          <PulseSummary items={pulseData} />
+          <PulseSummary items={pulseData} summary={aiSummary} />
         </div>
       </div>
     </div>
