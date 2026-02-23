@@ -1,65 +1,23 @@
-const bcrypt = require("bcryptjs");
 const { StatusCodes } = require("http-status-codes");
-const User = require("../models/User");
 const ApiError = require("../utils/ApiError");
-const { signAccessToken } = require("../utils/jwt");
-
-const normalizeUsername = (value) => String(value || "").trim().toLowerCase();
-
-const login = async ({ username, password }) => {
-  const normalizedUsername = normalizeUsername(username);
-
-  const user = await User.findOne({
-    username: normalizedUsername,
-    isActive: true,
-  }).select("+passwordHash");
-
-  if (!user) {
-    throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid username or password.");
-  }
-
-  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-
-  if (!isPasswordValid) {
-    throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid username or password.");
-  }
-
-  user.lastLoginAt = new Date();
-  await user.save();
-
-  const accessToken = signAccessToken({
-    sub: user._id.toString(),
-    role: user.role,
-    username: user.username,
-  });
-
-  return {
-    token: accessToken,
-    user: {
-      id: user._id.toString(),
-      username: user.displayName,
-      role: user.role,
-    },
-  };
-};
+const { client } = require("../lib/auth");
 
 const getProfile = async (userId) => {
-  const user = await User.findById(userId).lean();
+  const db = client.db();
+  const userDoc = await db.collection("user").findOne({ id: userId });
 
-  if (!user || !user.isActive) {
+  if (!userDoc || userDoc.isActive === false) {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "User not found or inactive.");
   }
 
   return {
-    id: user._id.toString(),
-    username: user.displayName,
-    role: user.role,
-    lastLoginAt: user.lastLoginAt,
+    id: userDoc.id,
+    username: userDoc.name,
+    role: userDoc.role || "ADMIN",
+    lastLoginAt: userDoc.lastLoginAt || null,
   };
 };
 
 module.exports = {
-  login,
   getProfile,
 };
-

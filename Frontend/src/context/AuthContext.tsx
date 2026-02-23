@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { AuthUser } from '../types';
 import { authApi } from '../services/authApi';
-import { authStorage } from '../services/authStorage';
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -21,22 +20,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let mounted = true;
 
     const initializeAuth = async () => {
-      const token = authStorage.getToken();
-
-      if (!token) {
-        if (mounted) {
-          setIsInitializing(false);
-        }
-        return;
-      }
-
       try {
         const profile = await authApi.me();
         if (mounted) {
           setUser(profile);
         }
-      } catch {
-        authStorage.clearToken();
+      } catch (err) {
         if (mounted) {
           setUser(null);
         }
@@ -67,13 +56,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (username: string, password: string) => {
-    const payload = await authApi.login({ username, password });
-    authStorage.setToken(payload.token);
-    setUser(payload.user);
+    await authApi.login({ username, password });
+    // authApi handles the login via BetterAuth client which sets the cookie
+    // We then fetch the profile to populate the user state
+    const profile = await authApi.me();
+    setUser(profile);
   };
 
-  const logout = () => {
-    authStorage.clearToken();
+  const logout = async () => {
+    await authApi.logout();
     setUser(null);
   };
 

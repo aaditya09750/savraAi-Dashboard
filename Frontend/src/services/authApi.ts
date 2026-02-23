@@ -1,5 +1,5 @@
-import type { ApiSuccessResponse, AuthUser, LoginPayload } from '../types';
-import { apiClient, unwrapResponse } from './apiClient';
+import { authClient } from "./authClient";
+import type { AuthUser } from "../types";
 
 interface LoginRequest {
   username: string;
@@ -7,14 +7,36 @@ interface LoginRequest {
 }
 
 export const authApi = {
-  async login(payload: LoginRequest): Promise<LoginPayload> {
-    const { data } = await apiClient.post<ApiSuccessResponse<LoginPayload>>('/auth/login', payload);
-    return unwrapResponse(data);
+  async login(payload: LoginRequest): Promise<any> {
+    const { data, error } = await authClient.signIn.username({
+      username: payload.username,
+      password: payload.password,
+    });
+
+    if (error) {
+      throw new Error(error.message || "Login failed");
+    }
+
+    return data;
   },
 
   async me(): Promise<AuthUser> {
-    const { data } = await apiClient.get<ApiSuccessResponse<AuthUser>>('/auth/me');
-    return unwrapResponse(data);
+    const { data, error } = await authClient.getSession();
+
+    if (error || !data?.user) {
+      throw new Error("Not authenticated");
+    }
+
+    // Map BetterAuth user fields to existing AuthUser interface
+    return {
+      id: data.user.id,
+      username: data.user.name,
+      role: (data.user as any).role || "ADMIN",
+      lastLoginAt: (data.user as any).lastLoginAt || null,
+    };
+  },
+
+  async logout(): Promise<void> {
+    await authClient.signOut();
   },
 };
-

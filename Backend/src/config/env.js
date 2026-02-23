@@ -7,8 +7,8 @@ const envSchema = Joi.object({
   NODE_ENV: Joi.string().valid("development", "production", "test").default("development"),
   PORT: Joi.number().integer().min(1).max(65535).default(5000),
   MONGODB_URI: Joi.string().uri({ scheme: ["mongodb", "mongodb+srv"] }).required(),
-  JWT_SECRET: Joi.string().min(32).required(),
-  JWT_EXPIRES_IN: Joi.string().default("1d"),
+  BETTER_AUTH_SECRET: Joi.string().min(32).required(),
+  BETTER_AUTH_URL: Joi.string().default("http://localhost:5000"),
   CORS_ORIGIN: Joi.string().default("http://localhost:5173"),
   RATE_LIMIT_WINDOW_MS: Joi.number().integer().min(1000).default(15 * 60 * 1000),
   RATE_LIMIT_MAX: Joi.number().integer().min(1).default(200),
@@ -32,8 +32,8 @@ module.exports = {
   nodeEnv: validatedEnv.NODE_ENV,
   port: validatedEnv.PORT,
   mongodbUri: validatedEnv.MONGODB_URI,
-  jwtSecret: validatedEnv.JWT_SECRET,
-  jwtExpiresIn: validatedEnv.JWT_EXPIRES_IN,
+  betterAuthSecret: validatedEnv.BETTER_AUTH_SECRET,
+  betterAuthUrl: validatedEnv.BETTER_AUTH_URL,
   corsOrigin: validatedEnv.CORS_ORIGIN,
   rateLimitWindowMs: validatedEnv.RATE_LIMIT_WINDOW_MS,
   rateLimitMax: validatedEnv.RATE_LIMIT_MAX,
@@ -43,4 +43,3 @@ module.exports = {
   seedAdminPassword: validatedEnv.SEED_ADMIN_PASSWORD,
   seedAdminRole: validatedEnv.SEED_ADMIN_ROLE,
 };
-

@@ -1,38 +1,31 @@
 const { StatusCodes } = require("http-status-codes");
-const User = require("../models/User");
 const ApiError = require("../utils/ApiError");
-const { verifyAccessToken } = require("../utils/jwt");
+const { fromNodeHeaders } = require("better-auth/node");
+const { auth } = require("../lib/auth");
 
 const requireAuth = async (req, _res, next) => {
   try {
-    const authHeader = req.headers.authorization || "";
+    const session = await auth.api.getSession({
+      headers: fromNodeHeaders(req.headers),
+    });
 
-    if (!authHeader.startsWith("Bearer ")) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, "Authentication token is required.");
+    if (!session || !session.user) {
+      return next(new ApiError(StatusCodes.UNAUTHORIZED, "Authentication token is required."));
     }
 
-    const token = authHeader.slice(7);
-    const payload = verifyAccessToken(token);
-
-    const user = await User.findById(payload.sub).lean();
-
-    if (!user || !user.isActive) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid authentication token.");
+    if (session.user.isActive === false) {
+      return next(new ApiError(StatusCodes.UNAUTHORIZED, "Invalid authentication token."));
     }
 
     req.auth = {
-      userId: user._id.toString(),
-      role: user.role,
-      username: user.username,
+      userId: session.user.id,
+      role: session.user.role || "ADMIN",
+      username: session.user.name,
     };
 
     return next();
   } catch (error) {
-    if (error.name === "TokenExpiredError" || error.name === "JsonWebTokenError") {
-      return next(new ApiError(StatusCodes.UNAUTHORIZED, "Invalid or expired authentication token."));
-    }
-
-    return next(error);
+    return next(new ApiError(StatusCodes.UNAUTHORIZED, "Invalid or expired authentication token."));
   }
 };
 
@@ -48,4 +41,3 @@ module.exports = {
   requireAuth,
   authorizeRoles,
 };
-

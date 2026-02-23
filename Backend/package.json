@@ -10,16 +10,15 @@
     "seed:reset": "node src/scripts/seed.js --reset"
   },
   "keywords": [
-    "express",
+    "better-auth",
     "mongodb",
-    "mongoose",
-    "jwt",
+    "express",
     "analytics"
   ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "bcryptjs": "^2.4.3",
+    "better-auth": "^1.1.18",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -30,7 +29,7 @@
     "hpp": "^0.2.3",
     "http-status-codes": "^2.3.0",
     "joi": "^17.13.3",
-    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.13.0",
     "mongoose": "^8.19.1",
     "morgan": "^1.10.1"
   },

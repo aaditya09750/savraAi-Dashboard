@@ -1,27 +1,21 @@
 import axios, { AxiosError } from 'axios';
 import type { ApiErrorResponse, ApiSuccessResponse } from '../types';
-import { authStorage } from './authStorage';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000/api/v1';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
+  withCredentials: true, // Crucial for BetterAuth session cookies
 });
 
-apiClient.interceptors.request.use((config) => {
-  const token = authStorage.getToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// Request interceptor removed: BetterAuth handles sessions via cookies automatically
 
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<ApiErrorResponse>) => {
     if (error.response?.status === 401) {
-      authStorage.clearToken();
+      // BetterAuth handles cookie cleanup; we just notify the UI
       window.dispatchEvent(new Event('auth:unauthorized'));
     }
     return Promise.reject(error);

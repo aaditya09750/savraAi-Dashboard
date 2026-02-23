@@ -1,6 +1,5 @@
-const bcrypt = require("bcryptjs");
 const env = require("../config/env");
-const User = require("../models/User");
+const { auth, client } = require("../lib/auth");
 const ActivityLog = require("../models/ActivityLog");
 const rawActivityLog = require("../data/rawActivityLog");
 const { parseDatasetDate } = require("../utils/date");
@@ -8,22 +7,42 @@ const { createActivitySignature } = require("../utils/activity");
 const logger = require("../utils/logger");
 
 const ensureAdminUser = async () => {
+  const db = client.db();
   const normalizedUsername = env.seedAdminUsername.trim().toLowerCase();
-  const existingUser = await User.findOne({ username: normalizedUsername }).lean();
+
+  // Check if admin user already exists in BetterAuth's user collection
+  const existingUser = await db.collection("user").findOne({ username: normalizedUsername });
 
   if (existingUser) {
     return;
   }
 
-  const passwordHash = await bcrypt.hash(env.seedAdminPassword, env.bcryptSaltRounds);
-
-  await User.create({
-    username: normalizedUsername,
-    displayName: env.seedAdminUsername.trim(),
-    passwordHash,
-    role: env.seedAdminRole,
-    isActive: true,
+  // Use BetterAuth's internal API to create the user properly
+  // This ensures the password is hashed in BetterAuth's format and
+  // both a user record and an account record are created
+  await auth.api.signUpEmail({
+    body: {
+      email: `${normalizedUsername}@savra.admin`,
+      name: env.seedAdminUsername.trim(),
+      password: env.seedAdminPassword,
+      username: normalizedUsername,
+    },
   });
+
+  // Update the created user with admin-specific fields
+  const createdUser = await db.collection("user").findOne({ username: normalizedUsername });
+  if (createdUser) {
+    await db.collection("user").updateOne(
+      { id: createdUser.id },
+      {
+        $set: {
+          role: env.seedAdminRole,
+          isActive: true,
+          lastLoginAt: null,
+        },
+      }
+    );
+  }
 
   logger.info("Bootstrap admin user created.", {
     username: env.seedAdminUsername.trim(),
@@ -80,4 +99,3 @@ const ensureBootstrapData = async () => {
 module.exports = {
   ensureBootstrapData,
 };
-
