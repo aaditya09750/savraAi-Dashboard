@@ -1,5 +1,5 @@
 const env = require("../config/env");
-const { auth, client } = require("../lib/auth");
+const { getAuth, client } = require("../lib/auth");
 const ActivityLog = require("../models/ActivityLog");
 const rawActivityLog = require("../data/rawActivityLog");
 const { parseDatasetDate } = require("../utils/date");
@@ -17,9 +17,9 @@ const ensureAdminUser = async () => {
     return;
   }
 
+  const { auth } = await getAuth();
+
   // Use BetterAuth's internal API to create the user properly
-  // This ensures the password is hashed in BetterAuth's format and
-  // both a user record and an account record are created
   await auth.api.signUpEmail({
     body: {
       email: `${normalizedUsername}@savra.admin`,

@@ -1,10 +1,11 @@
 const { StatusCodes } = require("http-status-codes");
 const ApiError = require("../utils/ApiError");
-const { fromNodeHeaders } = require("better-auth/node");
-const { auth } = require("../lib/auth");
+const { getAuth } = require("../lib/auth");
 
 const requireAuth = async (req, _res, next) => {
   try {
+    const { auth, fromNodeHeaders } = await getAuth();
+
     const session = await auth.api.getSession({
       headers: fromNodeHeaders(req.headers),
     });

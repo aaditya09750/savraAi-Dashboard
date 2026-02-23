@@ -6,9 +6,8 @@ const hpp = require("hpp");
 const mongoSanitize = require("express-mongo-sanitize");
 const rateLimit = require("express-rate-limit");
 const morgan = require("morgan");
-const { toNodeHandler } = require("better-auth/node");
 const env = require("./config/env");
-const { auth } = require("./lib/auth");
+const { getAuth } = require("./lib/auth");
 const apiRoutes = require("./routes");
 const requestIdMiddleware = require("./middlewares/requestId.middleware");
 const { notFoundHandler, errorHandler } = require("./middlewares/error.middleware");
@@ -76,7 +75,11 @@ if (env.nodeEnv !== "test") {
 
 // BetterAuth handler — MUST be mounted before express.json()
 // Handles all /api/auth/* routes (sign-in, sign-out, get-session, etc.)
-app.all("/api/auth/*", toNodeHandler(auth));
+// Using async wrapper to handle dynamic ESM import in CJS environment
+app.all("/api/auth/*", async (req, res) => {
+  const { auth, toNodeHandler } = await getAuth();
+  return toNodeHandler(auth)(req, res);
+});
 
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
