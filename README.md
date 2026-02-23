@@ -333,4 +333,4 @@ For assignment review and discussion:
 
 ---
 
-**SAVRA - Teacher Insights Dashboard** is designed as a production-minded analytics system focused on clean architecture, secure APIs, scalable data modeling, and actionable insights for academic administrators.
+**SAVRA - Insights Dashboard** is designed as a production-minded analytics system focused on clean architecture, secure APIs, scalable data modeling, and actionable insights for academic administrators.
