@@ -1,9 +1,9 @@
+const mongoose = require("mongoose");
 const { StatusCodes } = require("http-status-codes");
 const ApiError = require("../utils/ApiError");
-const { client } = require("../lib/auth");
 
 const getProfile = async (userId) => {
-  const db = client.db();
+  const db = mongoose.connection.db;
   const userDoc = await db.collection("user").findOne({ id: userId });
 
   if (!userDoc || userDoc.isActive === false) {

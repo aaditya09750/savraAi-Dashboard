@@ -1,5 +1,6 @@
+const mongoose = require("mongoose");
 const env = require("../config/env");
-const { getAuth, client } = require("../lib/auth");
+const { getAuth } = require("../lib/auth");
 const ActivityLog = require("../models/ActivityLog");
 const rawActivityLog = require("../data/rawActivityLog");
 const { parseDatasetDate } = require("../utils/date");
@@ -7,7 +8,7 @@ const { createActivitySignature } = require("../utils/activity");
 const logger = require("../utils/logger");
 
 const ensureAdminUser = async () => {
-  const db = client.db();
+  const db = mongoose.connection.db;
   const normalizedUsername = env.seedAdminUsername.trim().toLowerCase();
 
   // Check if admin user already exists in BetterAuth's user collection
